@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Selling Details</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .product-list {
+            margin-top: 20px;
+        }
+
+        .category-heading {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body onload="getProducts()">
+
+    <form id="productForm">
+        <label for="sellingPrice">Selling Price:</label>
+        <input type="text" id="sellingPrice" required>
+
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" required>
+
+        <label for="category">Choose a Category:</label>
+        <select id="category" required>
+            <option value="electronics">Electronics</option>
+            <option value="food">Food</option>
+            <option value="skincare">Skincare</option>
+        </select>
+
+        <button type="button" onclick="addProduct()">Add Product</button>
+    </form>
+
+    <h2>Products</h2>
+    <div class="product-list" id="productList">
+        <div id="electronicsProducts" class="category">
+            <div class="category-heading">Electronic Items</div>
+            <div class="product-details" id="electronicsDetails"></div>
+        </div>
+        <div id="foodProducts" class="category">
+            <div class="category-heading">Food Items</div>
+            <div class="product-details" id="foodDetails"></div>
+        </div>
+        <div id="skincareProducts" class="category">
+            <div class="category-heading">Skincare Items</div>
+            <div class="product-details" id="skincareDetails"></div>
+        </div>
+    </div>
+   
+    <script>
+        function addProduct() {
+            var productName = document.getElementById('productName').value;
+            var sellingPrice = document.getElementById('sellingPrice').value;
+            var category = document.getElementById('category').value;
+
+            axios.post('https://crudcrud.com/api/a9889d342a75440596060e0ae7c5babf/products', {
+                productName: productName,
+                sellingPrice: sellingPrice,
+                category: category
+            })
+            .then(response => {
+                console.log('POST request successful:', response.data);
+                alert('Product added successfully!');
+                getProducts(); // Update the displayed products after adding
+            })
+            .catch(error => {
+                console.error('Error making POST request:', error);
+                alert('Failed to add product. Please try again.\nSee console for error details.');
+            });
+        }
+
+        function getProducts() {
+            axios.get('https://crudcrud.com/api/a9889d342a75440596060e0ae7c5babf/products')
+            .then(response => {
+                console.log('GET request successful:', response.data);
+                displayProducts(response.data);
+            })
+            .catch(error => {
+                console.error('Error making GET request:', error);
+                alert('Failed to retrieve products.\nSee console for error details.');
+            });
+        }
+
+        function displayProducts(products) {
+            var electronicsDetailsDiv = document.getElementById('electronicsDetails');
+            var foodDetailsDiv = document.getElementById('foodDetails');
+            var skincareDetailsDiv = document.getElementById('skincareDetails');
+
+            // Clear previous data
+            electronicsDetailsDiv.innerHTML = '';
+            foodDetailsDiv.innerHTML = '';
+            skincareDetailsDiv.innerHTML = '';
+
+            products.forEach(product => {
+                var productDiv = document.createElement('div');
+                productDiv.textContent = `${product.sellingPrice} - ${product.category} - ${product.productName}`;
+
+                // Add a delete button
+                var deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = function () {
+                    deleteProduct(product._id);
+                };
+
+                // Append delete button to product detail
+                productDiv.appendChild(deleteButton);
+
+                // Append product detail to corresponding category section
+                if (product.category === 'electronics') {
+                    electronicsDetailsDiv.appendChild(productDiv);
+                } else if (product.category === 'food') {
+                    foodDetailsDiv.appendChild(productDiv);
+                } else if (product.category === 'skincare') {
+                    skincareDetailsDiv.appendChild(productDiv);
+                }
+            });
+        }
+
+        function deleteProduct(productId) {
+            // Make a DELETE request to CRUD CRUD
+            axios.delete(`https://crudcrud.com/api/a9889d342a75440596060e0ae7c5babf/products/${productId}`)
+            .then(response => {
+                console.log('DELETE request successful:', response.data);
+                alert('Product deleted successfully!');
+                getProducts(); // Update the displayed products after deletion
+            })
+            .catch(error => {
+                console.error('Error making DELETE request:', error);
+                alert('Failed to delete product. Please try again.\nSee console for error details.');
+            });
+        }
+
+        // Fetch existing data on page load
+        window.onload = function () {
+            getProducts();
+        };
+    </script>
+</body>
+</html>
